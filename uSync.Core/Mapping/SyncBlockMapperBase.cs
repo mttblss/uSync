@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 
+using System.Collections;
+using System.Text.Json.Nodes;
+
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Services;
@@ -35,17 +38,32 @@ public abstract class SyncBlockMapperBase<TBlockValue> : SyncValueMapperBase
     public override async Task<string?> GetExportValueAsync(object value, string editorAlias)
         => await ProcessBlockValuesAsync(value?.ToString() ?? string.Empty, GetExportProperty);
 
+    private static string? GetStringValue(object? value)
+    {
+        if (value is null) return string.Empty;
+
+        return value switch
+        {
+            string stringValue => stringValue,
+            IList or JsonArray or JsonObject => value.SerializeJsonString(false),
+            _ => value.ToString(),
+        };
+    }
 
     private async Task<object?> GetImportProperty(object? value, string propertyEditorAlias)
     {
         if (_mapperCollection.Value is null) return value;
-        return await _mapperCollection.Value.GetImportValueAsync(value?.ToString() ?? string.Empty, propertyEditorAlias);
+        _logger.LogDebug("Importing block value for {PropertyEditorAlias} {valueType}", propertyEditorAlias, value?.GetType().Name ?? "blank");
+        var importString = SyncBlockMapperBase<TBlockValue>.GetStringValue(value) ?? string.Empty;
+        return await _mapperCollection.Value.GetImportValueAsync(importString, propertyEditorAlias);
     }
 
     private async Task<object?> GetExportProperty(object? value, string propertyEditorAlias)
     {
         if (_mapperCollection.Value is null) return value;
-        var result = await _mapperCollection.Value.GetExportValueAsync(value?.ToString() ?? string.Empty, propertyEditorAlias);
+        _logger.LogDebug("Exporting block value for {PropertyEditorAlias} {valueType}", propertyEditorAlias, value?.GetType().Name ?? "blank");
+        var exportValueAsString = SyncBlockMapperBase<TBlockValue>.GetStringValue(value) ?? string.Empty;
+        var result = await _mapperCollection.Value.GetExportValueAsync(exportValueAsString, propertyEditorAlias);
         return result.ConvertToJsonNode()?.ExpandAllJsonInToken() ?? result;
     }
 
@@ -111,7 +129,7 @@ public abstract class SyncBlockMapperBase<TBlockValue> : SyncValueMapperBase
         {
             stringValue = blockPropertyValue.Value?.ToString() ?? string.Empty;
         }
-        
+
         if (string.IsNullOrWhiteSpace(stringValue)) return [];
 
         var blockValue = SyncBlockMapperBase<TBlockValue>.GetBlockValue(stringValue);
