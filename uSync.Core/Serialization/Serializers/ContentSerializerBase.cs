@@ -252,7 +252,7 @@ public abstract class ContentSerializerBase<TObject> : SyncTreeSerializerBase<TO
 
                 if (validNode)
                 {
-                    valueNode.Add(new XCData(await GetExportValueAsync(GetPropertyValue(value), property.PropertyType, value.Culture!, value.Segment!)));
+                    valueNode.Add(new XCData(await GetExportValueAsync(GetPropertyValue(item, value, options), property.PropertyType, value.Culture!, value.Segment!)));
                     elements.Add(valueNode);
                 }
             }
@@ -298,6 +298,10 @@ public abstract class ContentSerializerBase<TObject> : SyncTreeSerializerBase<TO
     }
 
     // allows us to switch between published / edited easier.
+    protected virtual object? GetPropertyValue(TObject content, IPropertyValue value, SyncSerializerOptions options)
+        => value.EditedValue;
+
+    [Obsolete("Use Get Property value with content and options, will be removed in v17")]
     protected virtual object? GetPropertyValue(IPropertyValue value)
         => value.EditedValue;
 
