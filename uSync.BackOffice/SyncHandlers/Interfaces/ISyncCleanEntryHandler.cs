@@ -18,5 +18,8 @@ public interface ISyncCleanEntryHandler
     IEnumerable<uSyncAction> ProcessCleanActions(string? folder, IEnumerable<uSyncAction> actions, HandlerSettings config)
         => ProcessCleanActionsAsync(folder, actions, config).Result;
 
+    /// <summary>
+    /// process any clean actions that have been identified during the import 
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ProcessCleanActionsAsync(string? folder, IEnumerable<uSyncAction> actions, HandlerSettings config);
 }

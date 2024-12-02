@@ -11,9 +11,7 @@ using uSync.BackOffice.SyncHandlers.Models;
 
 namespace uSync.BackOffice.SyncHandlers;
 
-/// <summary>
-///  Factory method for accessing the handlers and their configuration
-/// </summary>
+/// <inheritdoc/>
 public class SyncHandlerFactory : ISyncHandlerFactory
 {
     private readonly SyncHandlerCollection _syncHandlers;
@@ -33,35 +31,25 @@ public class SyncHandlerFactory : ISyncHandlerFactory
         _configService = configService;
     }
 
-    /// <summary>
-    ///  Name of the default handler set
-    /// </summary>
+    /// <inheritdoc/>
     public string DefaultSet => this._configService.Settings.DefaultSet;
 
     #region All getters (regardless of set or config)
 
-    /// <summary>
-    ///  Get all handlers 
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<ISyncHandler> GetAll()
         => _syncHandlers.Handlers;
 
-    /// <summary>
-    ///  Get a handler by alias 
-    /// </summary>
+    /// <inheritdoc/>
     public ISyncHandler? GetHandler(string alias)
         => _syncHandlers.Handlers
             .FirstOrDefault(x => x.Alias.InvariantEquals(alias));
 
-    /// <summary>
-    ///  Get all handlers that match the list of names in the aliases array 
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<ISyncHandler> GetHandlers(params string[] aliases)
         => _syncHandlers.Where(x => aliases.InvariantContains(x.Alias));
 
-    /// <summary>
-    ///  returns the handler groups (settings, content, users, etc) that stuff can be grouped into
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<string> GetGroups()
         => _syncHandlers.Handlers
             .Select(x => x.Group)
@@ -71,11 +59,7 @@ public class SyncHandlerFactory : ISyncHandlerFactory
 
     #region Default Config Loaders - for when you know exactly what you want
 
-    /// <summary>
-    ///  Get Default Handlers based on Alias
-    /// </summary>
-    /// <param name="aliases">aliases of handlers you want </param>
-    /// <returns>Handler/Config Pair with default config loaded</returns>
+    /// <inheritdoc/>>
     public IEnumerable<HandlerConfigPair> GetDefaultHandlers(IEnumerable<string> aliases)
         => GetAll()
                 .Where(x => aliases.InvariantContains(x.Alias))
@@ -90,48 +74,35 @@ public class SyncHandlerFactory : ISyncHandlerFactory
 
     #region Valid Loaders (need set, group, action)
 
-    /// <summary>
-    ///  Get a valid handler (based on config) by alias and options
-    /// </summary>
+    /// <inheritdoc/>
     public HandlerConfigPair? GetValidHandler(string alias, SyncHandlerOptions? options = null)
          => GetValidHandlers(options)
              .FirstOrDefault(x => x.Handler.Alias.InvariantEquals(alias));
 
-    /// <summary>
-    ///  Get a valid handler (based on config) by ItemType and options
-    /// </summary>
+    /// <inheritdoc/>
     public HandlerConfigPair? GetValidHandlerByTypeName(string itemType, SyncHandlerOptions? options = null)
         => GetValidHandlers(options)
             .Where(x => itemType.InvariantEquals(x.Handler.TypeName))
             .FirstOrDefault();
 
-    /// <summary>
-    ///  Get a valid handler (based on config) by Umbraco Entity Type and options
-    /// </summary>
+    /// <inheritdoc/>
     public HandlerConfigPair? GetValidHandlerByEntityType(string entityType, SyncHandlerOptions? options = null)
         => GetValidHandlers(options)
             .FirstOrDefault(x => x.Handler.EntityType.InvariantEquals(entityType) is true);
 
-    /// <summary>
-    ///  Get a valid handler (based on config) by options
-    /// </summary>
+    /// <inheritdoc/>
     public HandlerConfigPair? GetValidHander<TObject>(SyncHandlerOptions? options = null)
         => GetValidHandlers(options)
             .Where(x => x.Handler.ItemType == typeof(TObject).Name)
             .FirstOrDefault();
 
-
-    /// <summary>
-    ///  Get a all valid handlers (based on config) that can handle a given entityType
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<HandlerConfigPair> GetValidHandlersByEntityType(IEnumerable<string> entityTypes, SyncHandlerOptions? options = null)
         => GetValidHandlers(options)
             .Where(x => entityTypes.InvariantContains(x.Handler.EntityType));
 
 
-    /// <summary>
-    ///  Get the valid (by config) handler groups available to this setup
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<string> GetValidGroups(SyncHandlerOptions? options = null)
     {
         var handlers = GetValidHandlers(options);
@@ -145,13 +116,7 @@ public class SyncHandlerFactory : ISyncHandlerFactory
         return groups.Distinct();
     }
 
-    /// <summary>
-    ///  get the handler groups and their icons
-    /// </summary>
-    /// <remarks>
-    ///  if we don't have a defined icon for a group, the icon from the first handler in the group
-    ///  will be used. 
-    /// </remarks>
+    /// <inheritdoc/>
     public IDictionary<string, string> GetValidHandlerGroupsAndIcons(SyncHandlerOptions? options = null)
     {
         var handlers = GetValidHandlers(options);
@@ -161,9 +126,7 @@ public class SyncHandlerFactory : ISyncHandlerFactory
             .ToDictionary(k => k.group, v => v.icon);
     }
 
-    /// <summary>
-    ///  get a collection of valid handlers that match the list of aliases 
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<HandlerConfigPair> GetValidHandlers(string[] aliases, SyncHandlerOptions? options = null)
         => GetValidHandlers(options)
             .Where(x => aliases.InvariantContains(x.Handler.Alias));
@@ -177,9 +140,7 @@ public class SyncHandlerFactory : ISyncHandlerFactory
         };
     }
 
-    /// <summary>
-    /// Get all valid (by configuration) handlers that fulfill the criteria set out in the passed SyncHandlerOptions 
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<HandlerConfigPair> GetValidHandlers(SyncHandlerOptions? options = null)
     {
         options ??= new SyncHandlerOptions();

@@ -99,6 +99,13 @@ public interface ISyncHandler
     IEnumerable<uSyncAction> Export(Udi udi, string folder, HandlerSettings settings)
         => ExportAsync(udi, new[] { folder }, settings).Result;
 
+    /// <summary>
+    /// Export an item based on the Udi value of the item
+    /// </summary>
+    /// <remarks>
+    /// these export methods do not obey roots, there are for use
+    /// only when exporting to a custom folder.
+    /// </remarks>
     [Obsolete("use ExportAsync will be removed in v16")]
     IEnumerable<uSyncAction> Export(Udi udi, string[] folders, HandlerSettings settings)
         => ExportAsync(udi, folders, settings).Result;
@@ -218,19 +225,79 @@ public interface ISyncHandler
 
     // async all the things... 
 
+    /// <summary>
+    ///  Async Export an item based on UDI
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ExportAsync(Udi udi, string[] folders, HandlerSettings settings);
+
+    /// <summary>
+    ///  async export all items in a folder
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ExportAllAsync(string[] folders, HandlerSettings settings, SyncUpdateCallback? callback);
+
+    /// <summary>
+    ///  Get the dependencies for an item
+    /// </summary>
     Task<IEnumerable<uSyncDependency>> GetDependenciesAsync(Guid key, DependencyFlags flags);
+
+    /// <summary>
+    ///  Get an XMLElement representation of an item by UDI
+    /// </summary> 
     Task<SyncAttempt<XElement>> GetElementAsync(Udi udi);
+
+    /// <summary>
+    ///  Import an item from disk
+    /// </summary> 
     Task<IEnumerable<uSyncAction>> ImportAsync(string file, HandlerSettings settings, bool force);
+
+    /// <summary>
+    ///  Import all items in a folder
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ImportAllAsync(string[] folders, HandlerSettings settings, uSyncImportOptions options);
+
+    /// <summary>
+    ///  import an XElement node
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ImportElementAsync(XElement node, string filename, HandlerSettings settings, uSyncImportOptions options);
+
+    /// <summary>
+    ///  report all items in a folder
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ReportAsync(string[] folders, HandlerSettings settings, SyncUpdateCallback? callback);
+
+    /// <summary>
+    ///  Report an XELement node
+    /// </summary>
     Task<IEnumerable<uSyncAction>> ReportElementAsync(XElement node, string filename, HandlerSettings settings, uSyncImportOptions options);
+
+    /// <summary>
+    ///  Import the second pass of an item
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="settings"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
     Task<IEnumerable<uSyncAction>> ImportSecondPassAsync(uSyncAction action, HandlerSettings settings, uSyncImportOptions options);
 
+    /// <summary>
+    ///  find an item from a node
+    /// </summary>
     Task<Udi?> FindFromNodeAsync(XElement node);
+
+    /// <summary>
+    ///  get the change status of an item compared to the XElement
+    /// </summary>
     Task<ChangeType> GetItemStatusAsync(XElement node);
+
+    /// <summary>
+    ///  cache the folder keys for faster lookups
+    /// </summary>
     Task PreCacheFolderKeysAsync(string folder, IList<Guid> keys);
+
+    /// <summary>
+    ///  get all items for the report/import process.
+    /// </summary>
+    /// <param name="folders"></param>
+    /// <returns></returns>
     Task<IReadOnlyList<OrderedNodeInfo>> FetchAllNodesAsync(string[] folders);
 }

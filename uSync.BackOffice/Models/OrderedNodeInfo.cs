@@ -70,10 +70,12 @@ public class OrderedNodeInfo
     /// <summary>
     ///  overwrites the node value for this ordered node element.
     /// </summary>
-    /// <param name="node"></param>
     public void SetNode(XElement node)
         => Node = node;
 
+    /// <summary>
+    ///  set the filename for a node.
+    /// </summary>
     public void SetFileName(string filename)
         => FileName = filename;
 

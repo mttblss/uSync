@@ -57,6 +57,7 @@ public interface ISyncFileService
     /// <summary>
     ///  delete a folder (and all its contents)
     /// </summary>
+    /// <param name="folder">Path to the folder to delete</param>
     /// <param name="safe">don't throw an exception if this fails</param>
     void DeleteFolder(string folder, bool safe = false);
 

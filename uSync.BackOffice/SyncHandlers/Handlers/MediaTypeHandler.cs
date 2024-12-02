@@ -69,9 +69,11 @@ public class MediaTypeHandler : ContentTypeBaseHandler<IMediaType>, ISyncHandler
         return item.Name?.ToSafeFileName(shortStringHelper) ?? item.Key.ToString();
     }
 
+    /// <inheritdoc/>
     protected override async Task DeleteFolderAsync(Guid key)
         => await _mediaTypeContainerService.DeleteAsync(key, Constants.Security.SuperUserKey);
 
+    /// <inheritdoc/>
     protected override async Task<IEntity?> GetContainerAsync(Guid key)
         => await _mediaTypeContainerService.GetAsync(key);
 

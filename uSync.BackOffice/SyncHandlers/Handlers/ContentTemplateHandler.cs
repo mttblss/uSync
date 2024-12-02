@@ -63,6 +63,7 @@ public class ContentTemplateHandler : ContentHandlerBase<IContent>, ISyncHandler
             throw new NullReferenceException("Can not load the contentTemplateSerializer");
     }
 
+    /// <inheritdoc/>
     protected override Task<IEnumerable<IEntity>> GetChildItemsAsync(Guid key)
     {
         if (key != Guid.Empty) return Task.FromResult(Enumerable.Empty<IEntity>());

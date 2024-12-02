@@ -73,9 +73,11 @@ public class ContentTypeHandler : ContentTypeBaseHandler<IContentType>, ISyncHan
         return item.Name?.ToSafeFileName(shortStringHelper) ?? item.Key.ToString();
     }
 
+    /// <inheritdoc/>
     protected override async Task<IEntity?> GetContainerAsync(Guid key)
         => await _contentTypeContainerService.GetAsync(key);
 
+    /// <inheritdoc/>
     protected override async Task DeleteFolderAsync(Guid key)
         => await _contentTypeContainerService.DeleteAsync(key, Constants.Security.SuperUserKey);
 }

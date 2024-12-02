@@ -60,9 +60,11 @@ public class WebhookHandler : SyncHandlerRoot<IWebhook, IWebhook>, ISyncHandler,
     protected override Task<IEnumerable<uSyncAction>> DeleteMissingItemsAsync(IWebhook parent, IEnumerable<Guid> keysToKeep, bool reportOnly)
         => Task.FromResult(Enumerable.Empty<uSyncAction>());
 
+    /// <inheritdoc/>
     protected override async Task<IEnumerable<IWebhook>> GetChildItemsAsync(IWebhook? parent)
         => parent is not null ? [] : (await _webhookService.GetAllAsync(0, 1000)).Items;
 
+    /// <inheritdoc/>
     protected override Task<IEnumerable<IWebhook>> GetFoldersAsync(IWebhook? parent)
         => Task.FromResult(Enumerable.Empty<IWebhook>());
 

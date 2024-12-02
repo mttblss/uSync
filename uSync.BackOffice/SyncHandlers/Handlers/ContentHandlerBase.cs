@@ -201,7 +201,6 @@ public abstract class ContentHandlerBase<TObject> : SyncHandlerTreeBase<TObject>
     /// <summary>
     ///  Handle the Umbraco Moved to recycle bin notification, (treated like a move)
     /// </summary>
-    /// <param name="notification"></param>
     public async Task HandleAsync(MovedToRecycleBinNotification<TObject> notification, CancellationToken cancellationToken)
     {
         if (!ShouldProcessEvent()) return;
@@ -211,7 +210,6 @@ public abstract class ContentHandlerBase<TObject> : SyncHandlerTreeBase<TObject>
     /// <summary>
     ///  Check that roots isn't stopping an item from being recycled.
     /// </summary>
-    /// <param name="notification"></param>
     public async Task HandleAsync(MovingToRecycleBinNotification<TObject> notification, CancellationToken cancellationToken)
     {
         if (await ShouldBlockRootChangesAsync(notification.MoveInfoCollection.Select(x => x.Entity)))

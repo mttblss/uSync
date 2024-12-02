@@ -143,6 +143,7 @@ public class TemplateHandler : SyncHandlerLevelBase<ITemplate>, ISyncHandler, IS
     /// <inheritdoc/>
     protected override string GetItemName(ITemplate item) => item.Name ?? item.Alias;
 
+    /// <inheritdoc/>
     protected override async Task<IEnumerable<IEntity>> GetChildItemsAsync(Guid key)
     {
         if (key == Guid.Empty) return await _templateService.GetChildrenAsync(-1);
@@ -152,6 +153,7 @@ public class TemplateHandler : SyncHandlerLevelBase<ITemplate>, ISyncHandler, IS
     }
 
 
+    /// <inheritdoc/>
     protected override async Task<IEnumerable<IEntity>> GetFoldersAsync(Guid key)
         => await GetChildItemsAsync(key);
 
@@ -159,6 +161,7 @@ public class TemplateHandler : SyncHandlerLevelBase<ITemplate>, ISyncHandler, IS
     protected override string GetItemPath(ITemplate item, bool useGuid, bool isFlat)
         => useGuid ? item.Key.ToString() : item.Alias.ToSafeFileName(shortStringHelper);
 
+    /// <inheritdoc/>
     protected override async Task<IEnumerable<IEntity>> GetFoldersAsync(IEntity? parent)
     {
         if (parent is null) return [];

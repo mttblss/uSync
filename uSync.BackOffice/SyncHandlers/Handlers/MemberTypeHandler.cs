@@ -56,6 +56,7 @@ public class MemberTypeHandler : ContentTypeBaseHandler<IMemberType>, ISyncHandl
     }
 
 
+    /// <inheritdoc/>
     protected override async Task DeleteFolderAsync(Guid key)
     {
         var container = await GetContainerAsync(key);
@@ -63,6 +64,7 @@ public class MemberTypeHandler : ContentTypeBaseHandler<IMemberType>, ISyncHandl
         memberTypeService.DeleteContainer(container.Id);
     }
 
+    /// <inheritdoc/>
     protected override Task<IEntity?> GetContainerAsync(Guid key)
         => Task.FromResult<IEntity?>(memberTypeService.GetContainer(key));
 

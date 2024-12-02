@@ -107,6 +107,7 @@ public class LanguageHandler : SyncHandlerBase<ILanguage>, ISyncHandler,
     }
 
 
+    /// <inheritdoc/>
     protected override async Task<IEnumerable<IEntity>> GetChildItemsAsync(Guid key)
         => key == Guid.Empty
             ? await _languageService.GetAllAsync()
@@ -236,6 +237,7 @@ public class LanguageHandler : SyncHandlerBase<ILanguage>, ISyncHandler,
         }
     }
 
+    /// <inheritdoc/>
     protected override Task<IEnumerable<uSyncAction>> DeleteMissingItemsAsync(ILanguage parent, IEnumerable<Guid> keysToKeep, bool reportOnly)
         => Task.FromResult(Enumerable.Empty<uSyncAction>());
 }

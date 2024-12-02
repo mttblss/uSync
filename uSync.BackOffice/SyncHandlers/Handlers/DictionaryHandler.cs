@@ -96,6 +96,7 @@ public class DictionaryHandler : SyncHandlerLevelBase<IDictionaryItem>, ISyncHan
     protected override async Task<IEnumerable<IEntity>> GetFoldersAsync(Guid key)
         => await GetChildItemsAsync(key);
 
+    /// <inheritdoc/>
     protected override async Task<IEnumerable<IEntity>> GetChildItemsAsync(Guid key)
     {
         if (key == Guid.Empty)

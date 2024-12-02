@@ -24,6 +24,10 @@ public interface ISyncActionService
     [Obsolete("use ExportHandlerAsync will be removed in v16")]
     SyncActionResult ExportHandler(SyncActionOptions options, uSyncCallbacks? callbacks)
         => ExportHandlerAsync(options, callbacks).Result;
+
+    /// <summary>
+    ///  run an export based on the options provided
+    /// </summary>
     Task<SyncActionResult> ExportHandlerAsync(SyncActionOptions options, uSyncCallbacks? callbacks);
 
     /// <summary>
@@ -37,6 +41,10 @@ public interface ISyncActionService
     [Obsolete("use ImportHandlerAsync will be removed in v16")]
     SyncActionResult ImportHandler(SyncActionOptions options, uSyncCallbacks? callbacks)
         => ImportHandlerAsync(options, callbacks).Result;
+
+    /// <summary>
+    ///  run an export based on the options provided
+    /// </summary>
     Task<SyncActionResult> ImportHandlerAsync(SyncActionOptions options, uSyncCallbacks? callbacks);
 
     /// <summary>
@@ -45,6 +53,10 @@ public interface ISyncActionService
     [Obsolete("use ImportPostAsync will be removed in v16")]
     SyncActionResult ImportPost(SyncActionOptions options, uSyncCallbacks? callbacks)
         => ImportPostAsync(options, callbacks).Result;
+    
+    /// <summary>
+    ///  run an export based on the options provided
+    /// </summary>
     Task<SyncActionResult> ImportPostAsync(SyncActionOptions options, uSyncCallbacks? callbacks);
 
     /// <summary>
@@ -53,6 +65,10 @@ public interface ISyncActionService
     [Obsolete("use ReportHandlerAsync will be removed in v16")]
     SyncActionResult ReportHandler(SyncActionOptions options, uSyncCallbacks? callbacks)
         => ReportHandlerAsync(options, callbacks).Result;
+
+    /// <summary>
+    ///  run a report for a given handler based on the options provided.
+    /// </summary>
     Task<SyncActionResult> ReportHandlerAsync(SyncActionOptions options, uSyncCallbacks? callbacks);
 
     /// <summary>
@@ -60,6 +76,10 @@ public interface ISyncActionService
     /// </summary>
     [Obsolete("use StartProcessAsync will be removed in v16")]
     void StartProcess(HandlerActions action) => StartProcessAsync(action).Wait();
+
+    /// <summary>
+    ///  run an export based on the options provided
+    /// </summary>
     Task StartProcessAsync(HandlerActions action);
 
     /// <summary>
