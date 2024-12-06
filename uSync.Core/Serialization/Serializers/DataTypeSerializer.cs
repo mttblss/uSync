@@ -130,7 +130,7 @@ public class DataTypeSerializer : SyncContainerSerializerBase<IDataType>, ISyncS
         var editorUiAlias = info?.Element("EditorUIAlias").ValueOrDefault(string.Empty) ?? string.Empty;
 
         // migration thing if this is missing we guess it.
-        if (editorUiAlias.IsNullOrWhiteSpace())
+        if (string.IsNullOrWhiteSpace(editorUiAlias))
             editorUiAlias = ToPropertyEditorUiAlias(editorAlias) ?? string.Empty;
 
         if (item.EditorUiAlias != editorUiAlias)
@@ -139,25 +139,19 @@ public class DataTypeSerializer : SyncContainerSerializerBase<IDataType>, ISyncS
             item.EditorUiAlias = editorUiAlias;
         }
 
-        // we no longer read the db type value from the xml. 
-        // info?.Element("DatabaseType")?.ValueOrDefault(ValueStorageType.Nvarchar) ?? ValueStorageType.Nvarchar;
-
         // config 
         if (ShouldDesterilizeConfig(name, editorAlias, options))
         {
             details.AddRange(DeserializeConfiguration(item, node));
         }
 
-        details!.AddNotNull(await SetFolderFromElementAsync(item, info?.Element("Folder")));
+        details.AddNotNull(await SetFolderFromElementAsync(item, info?.Element("Folder")));
 
         return SyncAttempt<IDataType>.Succeed(item.Name ?? item.Id.ToString(), item, ChangeType.Import, details);
     }
 
-    private ValueStorageType GetEditorValueStorageType(IDataEditor? editor)
-    {
-        if (editor is null) return ValueStorageType.Ntext;
-        return ValueTypes.ToStorageType(editor.GetValueEditor().ValueType);
-    }
+    private static ValueStorageType GetEditorValueStorageType(IDataEditor? editor)
+        => editor is null ? ValueStorageType.Ntext : ValueTypes.ToStorageType(editor.GetValueEditor().ValueType);
 
     private async Task<uSyncChange?> SetFolderFromElementAsync(IDataType item, XElement? folderNode)
     {
@@ -170,9 +164,7 @@ public class DataTypeSerializer : SyncContainerSerializerBase<IDataType>, ISyncS
         if (container != null && container.Id != item.ParentId)
         {
             var change = uSyncChange.Update("", "Folder", container.Id, item.ParentId);
-
             item.SetParent(container);
-
             return change;
         }
 
@@ -221,26 +213,21 @@ public class DataTypeSerializer : SyncContainerSerializerBase<IDataType>, ISyncS
     {
         var node = InitializeBaseNode(item, item.Name ?? item.Id.ToString(), item.Level);
 
+        node.Add(await SerializerInfoAsync(item));
+        node.Add(SerializeConfiguration(item));
+
+        return SyncAttempt<XElement>.Succeed(item.Name ?? item.Id.ToString(), node, typeof(IDataType), ChangeType.Export);
+    }
+    private async Task<XElement> SerializerInfoAsync(IDataType item)
+    {
         var info = new XElement(uSyncConstants.Xml.Info,
             new XElement(uSyncConstants.Xml.Name, item.Name),
             new XElement("EditorAlias", item.EditorAlias),
             new XElement("EditorUIAlias", item.EditorUiAlias));
-        // new XElement("SortOrder", item.SortOrder));
 
-        if (item.Level != 1)
-        {
-            var folderNode = await this.GetFolderNodeAsync(item); //TODO - CACHE THIS CALL. 
-            if (folderNode != null)
-                info.Add(folderNode);
-        }
+        info.AddIfNotNull(await this.GetFolderNodeAsync(item));
 
-        node.Add(info);
-
-        var config = SerializeConfiguration(item);
-        if (config != null)
-            node.Add(config);
-
-        return SyncAttempt<XElement>.Succeed(item.Name ?? item.Id.ToString(), node, typeof(IDataType), ChangeType.Export);
+        return info;
     }
 
     private XElement SerializeConfiguration(IDataType item)

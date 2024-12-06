@@ -5,8 +5,6 @@ using System.Xml.Linq;
 
 using Umbraco.Extensions;
 
-using uSync.Core.Extensions;
-
 namespace uSync.Core;
 
 public static class XElementExtensions
@@ -265,6 +263,12 @@ public static class XElementExtensions
         if (val == string.Empty) throw new ArgumentNullException("Missing Value " + name);
 
         return val;
+    }
+
+    public static void AddIfNotNull(this XContainer container, XElement? element)
+    {
+        if (element is null) return;
+        container.Add(element);
     }
 
     #region Attribute Extensions
