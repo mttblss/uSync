@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using OpenIddict.Validation.AspNetCore;
+
 using System;
 using System.Linq;
 
@@ -246,8 +248,8 @@ public static class uSyncBackOfficeBuilderExtensions
     {
         options.AddPolicy(SyncAuthorizationPolicies.TreeAccessuSync, policy =>
         {
-            policy.AuthenticationSchemes.Add(backOfficeAuthScheme);
-            policy.Requirements.Add(new uSyncApplicationRequirement(Constants.Applications.Settings));
+            policy.AuthenticationSchemes.Add(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+            policy.Requirements.Add(new uSyncApplicationRequirement(Constants.Applications.Settings));                
         });
     }
 }
