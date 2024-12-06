@@ -96,7 +96,10 @@ public class DictionaryItemSerializer : SyncSerializerBase<IDictionaryItem>, ISy
         return SyncAttempt<IDictionaryItem>.Succeed(item.ItemKey, item, ChangeType.Import, details);
     }
 
-    private async Task<List<uSyncChange>> DeserializeTranslationsAsync(IDictionaryItem item, XElement node, SyncSerializerOptions options)
+    protected virtual async Task<List<uSyncChange>> DeserializeTranslationsAsync(IDictionaryItem item, XElement node, SyncSerializerOptions options)
+        => await DeserializeTranslationsInternalAsync(item, node, options);
+    
+    private async Task<List<uSyncChange>> DeserializeTranslationsInternalAsync(IDictionaryItem item, XElement node, SyncSerializerOptions options)
     {
         var translationNode = node.Element("Translations");
         if (translationNode == null) return [];
