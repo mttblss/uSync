@@ -1,4 +1,6 @@
-﻿using uSync.Core.Extensions;
+﻿using Org.BouncyCastle.Tls;
+
+using uSync.Core.Extensions;
 using uSync.Core.Models;
 
 namespace uSync.Core;
@@ -11,6 +13,12 @@ public static class ChangeListExtensions
     public static void AddNew(this List<uSyncChange> changes, string name, string value, string path, bool success)
     {
         changes.Add(uSyncChange.Create(path, name, value));
+    }
+
+    public static void AddIfUpdated<TObject>(this List<uSyncChange> changes, string name, TObject oldValue, TObject newValue, string path = "")
+    {
+        if (newValue?.Equals(oldValue) is true) return;
+        AddUpdate(changes, name, oldValue, newValue, path, true);
     }
 
     public static void AddUpdate<TObject>(this List<uSyncChange> changes, string name, TObject oldValue, TObject newValue, string path = "")

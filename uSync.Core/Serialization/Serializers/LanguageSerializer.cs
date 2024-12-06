@@ -24,80 +24,41 @@ public class LanguageSerializer : SyncSerializerBase<ILanguage>, ISyncSerializer
         ILanguageService localizationService)
         : base(entityService, logger)
     {
-        this._languageService = localizationService;
+        _languageService = localizationService;
     }
-
-
-    private static CultureInfo GetCulture(string isoCode) => CultureInfo.GetCultureInfo(isoCode);
 
     protected override async Task<SyncAttempt<ILanguage>> DeserializeCoreAsync(XElement node, SyncSerializerOptions options)
     {
-        var isoCode = node.Element("IsoCode").ValueOrDefault(string.Empty);
-        logger.LogDebug("Deserializing {isoCode}", isoCode);
-
-        var item = await _languageService.GetAsync(isoCode);
-        var culture = GetCulture(isoCode);
-
         var details = new List<uSyncChange>();
 
-        if (item is null)
-        {
-            logger.LogDebug("Creating New Language: {isoCode}", isoCode);
-            item = new Language(isoCode, culture.DisplayName);
+        var isoCode = node.Element("IsoCode").ValueOrDefault(string.Empty);
+        var culture = GetCulture(isoCode);
+
+        var item = await _languageService.GetAsync(isoCode)
+            ?? new Language(isoCode, culture.DisplayName);
+
+        if (item.HasIdentity is false)
             details.AddNew(isoCode, isoCode, "Language");
-        }
 
-        if (item.IsoCode != isoCode)
-        {
-            details.AddUpdate("IsoCode", item.IsoCode, isoCode);
-            item.IsoCode = isoCode;
-        }
+        details.AddIfUpdated(nameof(item.IsoCode), item.IsoCode, isoCode);
+        item.IsoCode = isoCode;
 
-        var name = node.Element("Name").ValueOrDefault(string.Empty);
-        if (string.IsNullOrEmpty(name))
-        {
-            try
-            {
-                if (item.CultureName != culture.DisplayName)
-                {
-                    details.AddUpdate("CultureName", item.CultureName, culture.DisplayName);
-                    item.CultureName = culture.DisplayName;
-                }
-            }
-            catch
-            {
-                logger.LogWarning("Can't set culture name based on IsoCode");
-            }
-        }
-        else if (item.CultureName != name)
-        {
-            details.AddUpdate("CultureName", item.CultureName, name);
-            item.CultureName = name;
-        }
+        var cultureName = node.Element("Name").ValueOrDefault(string.Empty);
+        if (string.IsNullOrEmpty(cultureName)) cultureName = culture.DisplayName;
+        details.AddIfUpdated(nameof(item.CultureName), item.CultureName, cultureName);
+        item.CultureName = cultureName;
 
         var mandatory = node.Element("IsMandatory").ValueOrDefault(false);
-        if (item.IsMandatory != mandatory)
-        {
-            details.AddUpdate("IsMandatory", item.IsMandatory, mandatory);
-            item.IsMandatory = mandatory;
-        }
+        details.AddIfUpdated(nameof(item.IsMandatory), item.IsMandatory, mandatory);
+        item.IsMandatory = mandatory;
 
         var isDefault = node.Element("IsDefault").ValueOrDefault(false);
-        if (item.IsDefault != isDefault)
-        {
-            details.AddUpdate("IsDefault", item.IsDefault, isDefault);
-            item.IsDefault = isDefault;
-        }
+        details.AddIfUpdated(nameof(item.IsDefault), item.IsDefault, isDefault);
+        item.IsDefault = isDefault;
 
         var fallbackIsoCode = GetFallbackLanguageIsoCode(item, node);
-        if (!string.IsNullOrEmpty(fallbackIsoCode) && item.FallbackIsoCode != fallbackIsoCode)
-        {
-            details.AddUpdate("FallbackIsoCode", item.FallbackIsoCode ?? "(None)", fallbackIsoCode);
-            item.FallbackIsoCode = fallbackIsoCode;
-        }
-
-        // logger.Debug<ILanguage>("Saving Language");
-        //localizationService.Save(item);
+        details.AddIfUpdated(nameof(item.FallbackIsoCode), item.FallbackIsoCode ?? "(None)", fallbackIsoCode);
+        item.FallbackIsoCode = fallbackIsoCode;
 
         return SyncAttempt<ILanguage>.Succeed(item.CultureName, item, ChangeType.Import, details);
     }
@@ -112,18 +73,12 @@ public class LanguageSerializer : SyncSerializerBase<ILanguage>, ISyncSerializer
         var details = new List<uSyncChange>();
 
         var isDefault = node.Element("IsDefault").ValueOrDefault(false);
-        if (item.IsDefault != isDefault)
-        {
-            details.AddUpdate("IsDefault", item.IsDefault, isDefault);
-            item.IsDefault = isDefault;
-        }
+        details.AddIfUpdated(nameof(item.IsDefault), item.IsDefault, isDefault);
+        item.IsDefault = isDefault;
 
         var fallbackIsoCode = GetFallbackLanguageIsoCode(item, node);
-        if (!string.IsNullOrWhiteSpace(fallbackIsoCode) && item.FallbackIsoCode != fallbackIsoCode)
-        {
-            details.AddUpdate("FallbackIsoCode", item.FallbackIsoCode ?? "(None)", fallbackIsoCode);
-            item.FallbackIsoCode = fallbackIsoCode;
-        }
+        details.AddIfUpdated(nameof(item.FallbackIsoCode), item.FallbackIsoCode ?? "(None)", fallbackIsoCode);
+        item.FallbackIsoCode = fallbackIsoCode;
 
         if (!options.Flags.HasFlag(SerializerFlags.DoNotSave) && item.IsDirty())
             await SaveItemAsync(item);
@@ -131,8 +86,8 @@ public class LanguageSerializer : SyncSerializerBase<ILanguage>, ISyncSerializer
         return SyncAttempt<ILanguage>.Succeed(item.CultureName, item, ChangeType.Import, details);
     }
 
-    private static string GetFallbackLanguageIsoCode(ILanguage item, XElement node)
-        => node.Element("Fallback").ValueOrDefault(string.Empty);
+    private static string? GetFallbackLanguageIsoCode(ILanguage item, XElement node)
+        => node.Element("Fallback").ValueOrDefault<string?>(null);
 
     protected override XElement InitializeBaseNode(ILanguage item, string alias, int level = 0)
     {
@@ -190,6 +145,8 @@ public class LanguageSerializer : SyncSerializerBase<ILanguage>, ISyncSerializer
         return item;
     }
 
+    private static CultureInfo GetCulture(string isoCode) => CultureInfo.GetCultureInfo(isoCode);
+
     /// <summary>
     ///  Keys for languages are not stable, the IsoCode is the best way to find a language. 
     /// </summary>
@@ -204,17 +161,6 @@ public class LanguageSerializer : SyncSerializerBase<ILanguage>, ISyncSerializer
     public override Task DeleteItemAsync(ILanguage item)
         => _languageService.DeleteAsync(item.IsoCode, Constants.Security.SuperUserKey);
 
-    protected override XElement CleanseNode(XElement node)
-    {
-        // v14 languages have keys now, and we want to use them if we can.
-
-        //if (node?.Attribute(uSyncConstants.Xml.Key)?.Value is not null)
-        //    node.Attribute(uSyncConstants.Xml.Key)!.Value = "";
-
-        return node!;
-    }
-
     public override string ItemAlias(ILanguage item)
         => item.IsoCode;
-
 }
