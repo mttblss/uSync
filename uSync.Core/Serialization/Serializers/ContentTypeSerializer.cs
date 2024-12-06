@@ -58,10 +58,20 @@ public class ContentTypeSerializer : ContentTypeBaseSerializer<IContentType>, IS
     protected override async Task<SyncAttempt<XElement>> SerializeCoreAsync(IContentType item, SyncSerializerOptions options)
     {
         var node = SerializeBase(item);
-        var info = SerializeInfo(item);
 
-        var history = SerializeCleanupHistory(item);
-        if (history != null) info.Add(history);
+        node.Add(await SerializeInfoAsync(item));
+        node.Add(await SerializeStructureAsync(item));
+        node.Add(await SerializePropertiesAsync(item));
+        node.Add(SerializeTabs(item));
+
+        return SyncAttempt<XElement>.Succeed(item.Name ?? item.Alias, node, typeof(IContentType), ChangeType.Export);
+    }
+
+    protected async Task<XElement> SerializeInfoAsync(IContentType item)
+    {
+        var info = SerializeInfo(item);
+        
+        info.AddIfNotNull(SerializeCleanupHistory(item));
 
         var parent = item.ContentTypeComposition.FirstOrDefault(x => x.Id == item.ParentId);
         if (parent != null)
@@ -71,9 +81,7 @@ public class ContentTypeSerializer : ContentTypeBaseSerializer<IContentType>, IS
         }
         else if (item.Level != 1)
         {
-            var folderNode = await this.GetFolderNodeAsync(item);
-            if (folderNode != null)
-                info.Add(folderNode);
+            info.AddIfNotNull(await this.GetFolderNodeAsync(item));
         }
 
         // compositions ? 
@@ -86,17 +94,9 @@ public class ContentTypeSerializer : ContentTypeBaseSerializer<IContentType>, IS
             : "";
 
         info.Add(new XElement("DefaultTemplate", templateAlias));
+        info.AddIfNotNull(SerializeTemplates(item));
 
-        var templates = SerializeTemplates(item);
-        if (templates != null)
-            info.Add(templates);
-
-        node.Add(info);
-        node.Add(await SerializeStructureAsync(item));
-        node.Add(await SerializePropertiesAsync(item));
-        node.Add(SerializeTabs(item));
-
-        return SyncAttempt<XElement>.Succeed(item.Name ?? item.Alias, node, typeof(IContentType), ChangeType.Export);
+        return info;
     }
 
     protected override void SerializeExtraProperties(XElement node, IContentType item, IPropertyType property)
@@ -130,7 +130,6 @@ public class ContentTypeSerializer : ContentTypeBaseSerializer<IContentType>, IS
         var details = new List<uSyncChange>();
 
         details.AddRange(await DeserializeBaseAsync(item, node));
-
 
         // compositions
         details.AddRange(await DeserializeCompositionsAsync(item, node));
@@ -184,7 +183,6 @@ public class ContentTypeSerializer : ContentTypeBaseSerializer<IContentType>, IS
         var historyChanges = DeserializeCleanupHistory(item, node);
         var historyUpdated = historyChanges.Any(x => x.Change > ChangeDetailType.NoChange);
         details.AddRange(historyChanges);
-
 
         CleanTabAliases(item);
 
